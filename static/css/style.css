@@ -1,0 +1,57 @@
+
+body {
+    margin: auto;
+    width: 50%;
+    border: 1px solid #6f6d6d;
+}
+
+.cases {
+    width: 40%;
+    margin: 5px;
+    padding: 3px;
+    border: 1px solid #6f6d6d;
+}
+
+.cases-items {
+    overflow: auto;
+    max-height: 150px;
+    width: 50%;
+    padding: 5px;
+    border: 1px solid #6f6d6d;
+}
+
+.closest-interogations {
+    margin: 5px;
+    padding: 3px;
+    border: 1px solid #6f6d6d;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: column;
+}
+
+table {
+	border: 1px solid #eee;
+}
+
+table th {
+	font-weight: bold;
+	padding: 5px;
+	background: #efefef;
+	border: 1px solid #dddddd;
+}
+
+table td{
+	padding: 5px 10px;
+	border: 1px solid #eee;
+	text-align: left;
+}
+
+table tbody tr:nth-child(odd){
+	background: #fff;
+}
+
+table tbody tr:nth-child(even){
+	background: #F7F7F7;
+}

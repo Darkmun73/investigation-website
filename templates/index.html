@@ -1,0 +1,211 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+        <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.css" />
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+        <script src="/static/js/jquery.datetimepicker.full.min.js"></script>
+
+        <title> Главная страница </title>
+        
+        {% macro render_multiple_select(select_name, df_items, df_selected_items, value_column_name, text_column_name) %}
+        <select multiple name={{select_name}}>
+            {% set n = len(df_items) %}
+            {% for i in range(n) %}
+                {% set text_column_item = df_items.loc[i, text_column_name] %}
+                {% set value_column_item = df_items.loc[i, value_column_name] %}
+                
+                {% if value_column_item in df_selected_items[value_column_name].tolist() %}
+                    <option selected value={{value_column_item}}>
+                {% else %}
+                    <option value={{value_column_item}}>
+                {% endif %} 
+                {{ text_column_item }} 
+                </option>
+            {% endfor %} 
+        </select>
+        {% endmacro %}
+    </head>
+    <body>
+        <div class="cases">
+            <h2>Дела</h2>
+            <form class="flex-container cases-items" action="{{ url_for('case') }}"  method="get">
+                {% set n = len(cases) %}
+                {% for i in range(n)%}
+                    {% set c_id = cases.loc[i, "case_id"] %}
+                    <button type="submit" name="case" value={{c_id}}>
+                        Дело №{{c_id}}
+                    </button>
+                {% endfor %}
+            </form>
+            <form style="padding: 5px;" action="{{ url_for('case') }}"  method="get">
+                <button type="submit" name="create-case">Завести дело</button>
+            </form>
+            <h3>Фильтрация:</h3>
+            <form action="" method="get">
+                <div>
+                    Подозреваемые:
+                    {{ render_multiple_select("suspect-filter", suspects, selected_suspects, "sus_wit_id", "sus_wit_name") }}
+                </div>
+                <div>
+                    Свидетели:
+                    {{ render_multiple_select("witness-filter", witnesses, selected_witnesses, "sus_wit_id", "sus_wit_name") }}
+                </div>
+                <div>
+                    Улики:
+                    {{ render_multiple_select("evidance-filter", evidances, selected_evidances, "evidance_id", "evidance_id") }}
+                </div>
+                <div>
+                    Актуальность:
+                    <select name="actuality-filter">
+                        {% if selected_actuality == "" or selected_actuality == "all" %}
+                            <option selected value="all">Все</option>
+                            <option value="opened">Открытые</option>
+                            <option value="closed">Закрытые</option>
+                        {% elif selected_actuality == "opened" %}
+                            <option value="all">Все</option>
+                            <option selected value="opened">Открытые</option>
+                            <option value="closed">Закрытые</option>
+                        {% elif selected_actuality == "closed" %}
+                            <option value="all">Все</option>
+                            <option value="opened">Открытые</option>
+                            <option selected value="closed">Закрытые</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <button type="submit" name="filter">Отфильтровать</button>
+            </form>
+        </div>
+        <div class="closest-interogations">
+            <h2>Ближайшие допросы</h2>
+            <form action="" method="get">
+                Ближайшие <input name="inter_num" type="number" min=2 max=15 value={{inter_num}}> допросов
+                <button type="submit" name="show_inters">Отобразить</button>
+            </form>
+            <table>
+                <tr>
+                    {% for name in closest_interogations.dtypes.index %}
+                        <th>{{name}}</th>
+                    {% endfor %}
+                </tr>
+                <tbody>
+                    {% set n = len(closest_interogations) %}
+                    {% if inter_num < n %}
+                        {% set n = inter_num %}
+                    {% endif %}
+
+                    {% for i in range(n) %} 
+                        <tr>
+                        {% for name in closest_interogations.dtypes.index %}
+                            <td>
+                                {{ closest_interogations.loc[i, name] }} 
+                            </td>
+                        {% endfor %}
+                            <td>
+                                <button onclick="window.conducted{{i}}.showModal()">Проведен</button>
+                                <dialog id="conducted{{i}}">
+                                    <form action="" method="post">
+                                        <!-- <textarea name="Text1" cols="40" rows="5"></textarea> -->
+                                        <label for="testimony{{i}}">Полученный показания от подозреваемого/свидетеля {{ closest_interogations.loc[i, "Имя свидетеля/подозреваемого"] }} по делу номер {{ closest_interogations.loc[i, "Номер дела"] }}:</label>
+                                        <textarea name="testimony" id="testimony{{i}}" cols="40" rows="5" required></textarea>
+                                        <input type="hidden" name="inter_id" value={{closest_interogations.loc[i,"Номер допроса"]}}>
+                                        <button type="submit" name="set_testimony">Ввод</button>
+                                    </form>
+                                    <form method="dialog">
+                                        <button type="submit" id="close">Закрыть окно</button>
+                                    </form>
+                                </dialog>
+                                <button onclick="window.didnt_take_place{{i}}.showModal()">Не состоялся</button>
+                                <dialog id="didnt_take_place{{i}}">
+                                    Подозреваемый/свидетель {{ closest_interogations.loc[i, "Имя свидетеля/подозреваемого"] }} по делу номер {{ closest_interogations.loc[i, "Номер дела"] }}
+                                    <form action="" method="post">
+                                        <label for="datepicker{{i}}">Дата:</label>
+                                        <input type="text" name="date" id="datepicker{{i}}" onchange="time_func('datepicker{{i}}','timepicker{{i}}','didnt_take_place{{i}}')" required>
+                                        <label for="timepicker{{i}}">Время:</label>
+                                        <input type="text" name="time" id="timepicker{{i}}" required>
+                                        <input type="hidden" name="inter_id" value={{closest_interogations.loc[i,"Номер допроса"]}}>
+                                        <button type="submit" name="set_date">Назначить</button>
+                                    </form>
+                                    <form method="dialog">
+                                        <button type="submit" id="close">Закрыть окно</button>
+                                    </form>
+                                </dialog>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <script>
+            jQuery.datetimepicker.setLocale('ru');
+            Array.prototype.diff = function(a) {
+                return this.filter(function(i) {return a.indexOf(i) < 0;});
+            };
+            var weekdays = [0,1,2,3,4,5,6]
+            $(function() {
+                {% set n = len(closest_interogations) %}
+                {% if inter_num < n %}
+                    {% set n = inter_num %}
+                {% endif %}
+
+                {% for i in range(n) %} 
+                    $("#datepicker{{i}}").datetimepicker({
+                        parentID:'#didnt_take_place{{i}}',
+                        timepicker:false,
+                        format:'Y-m-d',
+                        dayOfWeekStart:1,
+                        disabledWeekDays:weekdays.diff({{week_days_schedule | tojson}})
+                    });
+                {% endfor %}
+
+            });
+
+            function time_func(date_picker, time_picker, parent) {
+                var times = []
+                var date = $('#'+date_picker).val()
+                console.log(date_picker)
+                
+                var inter_dates_times = {{inter_dates | tojson}};
+                for(i=0;i<inter_dates_times.length;++i) {
+                    var date_time = inter_dates_times[i].split(' ')
+                    if (date_time[0] == date) {
+                        times.push(date_time[1]);
+                    }
+                }
+
+                var allowedTimes = []
+                console.log(date)
+                if (date) {
+                    $('#'+time_picker).prop('disabled', false)
+                    for(i=8;i<20;++i) {
+                        var time = i < 10 ? ('0' + i + ':00') : (i + ':00');
+                        if (!times.includes(time)) {
+                            allowedTimes.push(time)
+                        }
+                    }
+                    $('#'+time_picker).datetimepicker({
+                        parentID:'#'+parent,
+                        datepicker:false,
+                        allowTimes:allowedTimes,
+                        format: 'H:i'
+                    });
+                }
+                else {
+                    $('#'+time_picker).prop('disabled', true)
+                }
+
+            }
+            // var dialog = document.querySelector('dialog')
+            // // выводим модальное окно
+            // document.querySelector('#open').onclick = function () {
+            //   dialog.showModal()
+            // }
+            // // скрываем окно
+            // document.querySelector('#close').onclick = function () {
+            //   dialog.close() 
+            // }
+        </script>
+    </body>
+</html>
