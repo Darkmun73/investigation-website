@@ -1,12 +1,39 @@
 
 body {
     margin: auto;
-    width: 50%;
+    width: 70%;
     border: 1px solid #6f6d6d;
 }
 
 .cases {
     width: 40%;
+    margin: 5px;
+    padding: 3px;
+    border: 1px solid #6f6d6d;
+}
+
+.evidances {
+    width: 20%;
+    margin: 5px;
+    padding: 3px;
+    border: 1px solid #6f6d6d;
+}
+
+.suspects {
+    width: 35%;
+    margin: 5px;
+    padding: 3px;
+    border: 1px solid #6f6d6d;
+}
+
+.witnesses {
+    width: 35%;
+    margin: 5px;
+    padding: 3px;
+    border: 1px solid #6f6d6d;
+}
+
+.culprit {
     margin: 5px;
     padding: 3px;
     border: 1px solid #6f6d6d;

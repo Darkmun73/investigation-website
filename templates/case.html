@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+        <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.css" />
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+        <script src="/static/js/jquery.datetimepicker.full.min.js"></script>
+
+        <title> Дело №{{case_id}} </title>
+        
+        {% macro render_multiple_select(select_name, df_items, df_selected_items, value_column_name, text_column_name) %}
+        <select multiple name={{select_name}}>
+            {% set n = len(df_items) %}
+            {% for i in range(n) %}
+                {% set text_column_item = df_items.loc[i, text_column_name] %}
+                {% set value_column_item = df_items.loc[i, value_column_name] %}
+                
+                {% if value_column_item in df_selected_items[value_column_name].tolist() %}
+                    <option selected value={{value_column_item}}>
+                {% else %}
+                    <option value={{value_column_item}}>
+                {% endif %} 
+                {{ text_column_item }} 
+                </option>
+            {% endfor %} 
+        </select>
+        {% endmacro %}
+
+        {% macro render_select(select_name, df_items, selected_value, value_column_name, text_column_name) %}
+        <select name={{select_name}}>
+            {% set n = len(df_items) %}
+            {% for i in range(n) %}
+                {% set text_column_item = df_items.loc[i, text_column_name] %}
+                {% set value_column_item = df_items.loc[i, value_column_name] %}
+                
+                {% if value_column_item == selected_value %}
+                    <option selected value={{value_column_item}}>
+                {% else %}
+                    <option value={{value_column_item}}>
+                {% endif %} 
+                {{ text_column_item }} 
+                </option>
+            {% endfor %} 
+        </select>
+        {% endmacro %}
+    </head>
+    <body>
+        <h1>Дело №{{case_id}}</h1>
+        <div class="evidances">
+            <h2>Список улик</h2>
+            <div class="flex-container cases-items">
+                {% set n = len(evidances) %}
+                {% for i in range(n)%}
+                    {% set ev_id = evidances.loc[i, "evidance_id"] %}
+                    <button type="button">
+                        Улика №{{ev_id}}
+                    </button>
+                {% endfor %}
+            </div>
+            <form action="" method="get">
+                {{render_select("evidance_select", not_case_evidances, selected_evidance, "evidance_id", "evidance_id")}}
+                <button type="submit" name="add_evidance">Добавить улику</button>
+            </form>
+        </div>
+        <div class="suspects">
+            <h2>Список подозреваемых</h2>
+            <table>
+                <tr>
+                    {% for name in suspects.dtypes.index %}
+                        <th>{{name}}</th>
+                    {% endfor %}
+                </tr>
+                <tbody>
+                    {% set n = len(suspects) %}
+
+                    {% for i in range(n) %} 
+                        <tr>
+                        {% for name in suspects.dtypes.index %}
+                            <td>
+                                {{ suspects.loc[i, name] }} 
+                            </td>
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <form action="" method="get">
+                {{render_select("suspect_select", not_case_suspects, selected_suspect, "sus_wit_id", "sus_wit_name")}}
+                <button type="submit" name="add_suspect">Добавить подозреваемого</button>
+            </form>
+        </div>
+        <div class="witnesses">
+            <h2>Список свидетелей</h2>
+            <table>
+                <tr>
+                    {% for name in witnesses.dtypes.index %}
+                        <th>{{name}}</th>
+                    {% endfor %}
+                </tr>
+                <tbody>
+                    {% set n = len(witnesses) %}
+
+                    {% for i in range(n) %} 
+                        <tr>
+                        {% for name in witnesses.dtypes.index %}
+                            <td>
+                                {{ witnesses.loc[i, name] }} 
+                            </td>
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <form action="" method="get">
+                {{render_select("witness_select", not_case_witnesses, selected_witness, "sus_wit_id", "sus_wit_name")}}
+                <button type="submit" name="add_witness">Добавить свидетеля</button>
+            </form>
+        </div>
+        <form class="culprit" action="" method="get">
+            Выбрать виновника:
+            {{render_select("culprit_select", suspects, selected_culprit, "ID", "Имя")}}
+            <button type="submit" name="choose_culprit">Выбрать виновника</button>
+        </form>
+        </div>
+    </body>
+</html>
